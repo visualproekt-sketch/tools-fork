@@ -16,8 +16,10 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# import bmesh
-# import bpy
+from __future__ import annotations
+
+import bmesh
+import bpy
 # import collections
 # import mathutils
 # import math
@@ -32,7 +34,7 @@
 
 # check loops and only return valid ones
 # method is modified
-def check_loops(loops, bm_mod):
+def check_loops(loops: List[Tuple[List[int], bool]], bm_mod: bmesh.types.BMesh) -> List[List[Any]]:
     valid_loops = []
     for loop, circular in loops:
         # loop needs to have at least 3 vertices
@@ -62,8 +64,10 @@ def check_loops(loops, bm_mod):
     return(valid_loops)
 
 
+from typing import List, Tuple, Dict, Any
+
 # input: bmesh, output: dict with the edge-key as key and face-index as value
-def dict_edge_faces(bm):
+def dict_edge_faces(bm: bmesh.types.BMesh) -> Dict[Tuple[int, int], List[int]]:
     edge_faces = dict([[edgekey(edge), []] for edge in bm.edges if \
         not edge.hide])
     for face in bm.faces:
@@ -76,7 +80,7 @@ def dict_edge_faces(bm):
 
 
 # input: bmesh (edge-faces optional), output: dict with face-face connections
-def dict_face_faces(bm, edge_faces=False):
+def dict_face_faces(bm: bmesh.types.BMesh, edge_faces: Dict[Tuple[int, int], List[int]] | bool = False) -> Dict[int, List[int]]:
     if not edge_faces:
         edge_faces = dict_edge_faces(bm)
 
@@ -95,7 +99,7 @@ def dict_face_faces(bm, edge_faces=False):
 
 
 # input: bmesh, output: dict with the vert index as key and edge-keys as value
-def dict_vert_edges(bm):
+def dict_vert_edges(bm: bmesh.types.BMesh) -> Dict[int, List[Tuple[int, int]]]:
     vert_edges = dict([[v.index, []] for v in bm.verts if not v.hide])
     for edge in bm.edges:
         if edge.hide:
@@ -108,7 +112,7 @@ def dict_vert_edges(bm):
 
 
 # input: bmesh, output: dict with the vert index as key and face index as value
-def dict_vert_faces(bm):
+def dict_vert_faces(bm: bmesh.types.BMesh) -> Dict[int, List[int]]:
     vert_faces = dict([[v.index, []] for v in bm.verts if not v.hide])
     for face in bm.faces:
         if not face.hide:
@@ -119,7 +123,7 @@ def dict_vert_faces(bm):
 
 
 # input: list of edge-keys, output: dictionary with vertex-vertex connections
-def dict_vert_verts(edge_keys):
+def dict_vert_verts(edge_keys: List[Tuple[int, int]]) -> Dict[int, List[int]]:
     # create connection data
     vert_verts = {}
     for ek in edge_keys:
@@ -133,19 +137,19 @@ def dict_vert_verts(edge_keys):
 
 
 # return the edgekey ([v1.index, v2.index]) of a bmesh edge
-def edgekey(edge):
+def edgekey(edge: bmesh.types.BMEdge) -> Tuple[int, int]:
     return(tuple(sorted([edge.verts[0].index, edge.verts[1].index])))
 
 
 # returns the edgekeys of a bmesh face
-def face_edgekeys(face):
+def face_edgekeys(face: bmesh.types.BMFace) -> List[Tuple[int, int]]:
     return([tuple(sorted([edge.verts[0].index, edge.verts[1].index])) for \
         edge in face.edges])
 
 
 # calculate input loops
 # method is modified
-def get_connected_input(bm):
+def get_connected_input(bm: bmesh.types.BMesh) -> List[List[Any]]:
     # calculate selected loops
     edge_keys = [edgekey(edge) for edge in bm.edges if \
         edge.select and not edge.hide]
@@ -155,7 +159,7 @@ def get_connected_input(bm):
 
 
 # sorts all edge-keys into a list of loops
-def get_connected_selections(edge_keys):
+def get_connected_selections(edge_keys: List[Tuple[int, int]]) -> List[List[Any]]:
     # create connection data
     vert_verts = dict_vert_verts(edge_keys)
 

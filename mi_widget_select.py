@@ -16,21 +16,33 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
+from __future__ import annotations
 
 
-from bpy.props import *
-from bpy.types import Operator, AddonPreferences
-
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
+import bpy
+from bpy.types import Operator, AddonPreferences, Region
+from typing import Tuple, List, Optional
 import gpu
 from gpu_extras import presets
 from gpu_extras.batch import batch_for_shader
 
 
-shader3d = gpu.shader.from_builtin('UNIFORM_COLOR')
-shader2d = gpu.shader.from_builtin('UNIFORM_COLOR')
+shader3d = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+shader2d = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
 
 
-def draw_circle_select(m_coords, radius = 16, p_col = (0.7,0.8,1.0,0.6), enabled = False, sub = False):
+def draw_circle_select(m_coords: Tuple[int, int], radius: int = 16, p_col: Tuple[float, float, float, float] = (0.7, 0.8, 1.0, 0.6), enabled: bool = False, sub: bool = False):
     if(enabled):
         f_col = p_col
 
@@ -44,7 +56,7 @@ def draw_circle_select(m_coords, radius = 16, p_col = (0.7,0.8,1.0,0.6), enabled
         presets.draw_circle_2d(m_coords, (f_col[0], f_col[1], f_col[2], f_col[3]), radius, segments=64)
 
 
-def draw_box_select(anchor, m_coords, region,  p_col = (0.7,0.8,1.0,0.6), enabled = False, dragging = False, sub = False):
+def draw_box_select(anchor: Tuple[int, int], m_coords: Tuple[int, int], region: Region, p_col: Tuple[float, float, float, float] = (0.7, 0.8, 1.0, 0.6), enabled: bool = False, dragging: bool = False, sub: bool = False):
 
     if enabled:
         f_col = p_col

@@ -1,10 +1,20 @@
+from __future__ import annotations
+
 import bpy
 import bmesh
-# import bgl
 import blf
 import string
+from typing import Any, List, Tuple, Optional, Dict
 
-from bpy.props import *
+from bpy.props import (
+    StringProperty,
+    BoolProperty,
+    IntProperty,
+    FloatProperty,
+    EnumProperty,
+    PointerProperty,
+    CollectionProperty,
+)
 from bpy.types import Operator, AddonPreferences
 
 from bpy_extras import view3d_utils
@@ -16,10 +26,10 @@ from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 
 
-def get_obj_dup_meshes(obj_snap_mode, convert_instances, context, add_active_obj=False):
+def get_obj_dup_meshes(obj_snap_mode: str, convert_instances: bool, context: bpy.types.Context, add_active_obj: bool = False) -> List[Tuple[bpy.types.Object, mathu.Matrix]]:
     """Get all meshes"""
 
-    objects_array = None
+    objects_array: Optional[List[bpy.types.Object]] = None
     active_obj = context.active_object
     sel_objs = context.selected_objects
 
@@ -54,7 +64,7 @@ def get_obj_dup_meshes(obj_snap_mode, convert_instances, context, add_active_obj
 
 
 # mesh picking from screen
-def get_mouse_raycast(context, objects_list, coords_2d, ray_max=10000.0):
+def get_mouse_raycast(context: bpy.types.Context, objects_list: List[Tuple[bpy.types.Object, mathu.Matrix]], coords_2d: Tuple[int, int], ray_max: float = 10000.0) -> Tuple[Optional[bpy.types.Object], Optional[Vector], Optional[Vector]]:
     region = context.region
     rv3d = context.region_data
 
@@ -79,7 +89,7 @@ def get_mouse_raycast(context, objects_list, coords_2d, ray_max=10000.0):
 
 
 # mesh picking from 3d space
-def get_3dpoint_raycast(context, objects_list, vec_pos, vec_dir, ray_max=10000.0):
+def get_3dpoint_raycast(context: bpy.types.Context, objects_list: List[Tuple[bpy.types.Object, mathu.Matrix]], vec_pos: Vector, vec_dir: Vector, ray_max: float = 10000.0) -> Tuple[Optional[bpy.types.Object], Optional[Vector], Optional[Vector]]:
     best_obj, hit_normal, hit_position = None, None, None
     best_length_squared = 20000.0 * 20000.0
 
@@ -95,7 +105,7 @@ def get_3dpoint_raycast(context, objects_list, vec_pos, vec_dir, ray_max=10000.0
 
 
 # mesh picking
-def obj_raycast(obj, matrix, view_vector, ray_origin, ray_max=10000.0):
+def obj_raycast(obj: bpy.types.Object, matrix: mathu.Matrix, view_vector: Vector, ray_origin: Vector, ray_max: float = 10000.0) -> Tuple[Optional[Vector], Optional[Vector], Optional[float]]:
     """Wrapper for ray casting that moves the ray into object space"""
 
     # get the ray relative to the object
@@ -125,7 +135,7 @@ def obj_raycast(obj, matrix, view_vector, ray_origin, ray_max=10000.0):
 
 
 # get normal world
-def get_normal_world(normal, matrix, matrix_inv):
+def get_normal_world(normal: Vector, matrix: mathu.Matrix, matrix_inv: mathu.Matrix) -> Vector:
     normal_world = (matrix.to_quaternion() @ normal).to_4d()
     normal_world.w = 0
     normal_world = (matrix.to_quaternion() @ (matrix_inv @ normal_world).to_3d()).normalized()
@@ -134,7 +144,7 @@ def get_normal_world(normal, matrix, matrix_inv):
 
 
 # get mouse on a plane
-def get_mouse_on_plane(context, plane_pos, plane_dir, mouse_coords):
+def get_mouse_on_plane(context: bpy.types.Context, plane_pos: Vector, plane_dir: Optional[Vector], mouse_coords: Tuple[int, int]) -> Optional[Vector]:
     region = context.region
     rv3d = context.region_data
 
@@ -153,7 +163,7 @@ def get_mouse_on_plane(context, plane_pos, plane_dir, mouse_coords):
 
 
 # get object local axys
-def get_obj_axis(obj, axis):
+def get_obj_axis(obj: bpy.types.Object, axis: str) -> Vector:
     ax = 0
     if axis == 'Y' or axis == '-Y':
         ax = 1
@@ -170,7 +180,7 @@ def get_obj_axis(obj, axis):
     return axisResult
 
 
-def generate_id(other_ids):
+def generate_id(other_ids: Optional[List[str]]) -> str:
     # Generate unique id
     while True:
         uniq_numb = None
@@ -197,17 +207,17 @@ def generate_id(other_ids):
     #return [sel_verts, sel_edges, sel_faces]
 
 
-def get_selected_bmverts(bm):
+def get_selected_bmverts(bm: bmesh.types.BMesh) -> List[bmesh.types.BMVert]:
     sel_verts = [v for v in bm.verts if v.select]
     return sel_verts
 
 
-def get_selected_bmverts_ids(bm):
+def get_selected_bmverts_ids(bm: bmesh.types.BMesh) -> List[int]:
     sel_verts = [v.index for v in bm.verts if v.select]
     return sel_verts
 
 
-def get_bmverts_from_ids(bm, ids):
+def get_bmverts_from_ids(bm: bmesh.types.BMesh, ids: List[int]) -> List[bmesh.types.BMVert]:
     verts = []
     bm.verts.ensure_lookup_table()
     for v_id in ids:
@@ -216,7 +226,7 @@ def get_bmverts_from_ids(bm, ids):
     return verts
 
 
-def get_vertices_center(verts, obj, local_space):
+def get_vertices_center(verts: List[bmesh.types.BMVert], obj: bpy.types.Object, local_space: bool) -> Vector:
 
     vert_world_first = verts[0].co
     if not local_space:
@@ -254,7 +264,7 @@ def get_vertices_center(verts, obj, local_space):
     return Vector((x_orig, y_orig, z_orig))
 
 
-def get_verts_bounds(verts, obj, x_axis, y_axis, z_axis, local_space):
+def get_verts_bounds(verts: List[bmesh.types.BMVert], obj: bpy.types.Object, x_axis: Optional[Vector], y_axis: Optional[Vector], z_axis: Optional[Vector], local_space: bool) -> Tuple[float, float, float, Vector]:
 
     center = get_vertices_center(verts, obj, local_space)
 
@@ -294,7 +304,7 @@ def get_verts_bounds(verts, obj, x_axis, y_axis, z_axis, local_space):
     return (x_max + abs(x_min), y_max + abs(y_min), z_max + abs(z_min), center)
 
 
-def get_vertices_size(verts, obj):
+def get_vertices_size(verts: List[bmesh.types.BMVert], obj: bpy.types.Object) -> float:
     # if obj.mode == 'EDIT':
         # bm.verts.ensure_lookup_table()
     vert_world_first = obj.matrix_world @ verts[0].co
@@ -338,13 +348,13 @@ def get_vertices_size(verts, obj):
 
 
 # VECTOR OPERATIONS
-def multiply_local_vecs(vec1, vec2):
+def multiply_local_vecs(vec1: Vector | List[float], vec2: Vector | List[float]) -> None:
     vec1[0] *= vec2[0]
     vec1[1] *= vec2[1]
     vec1[2] *= vec2[2]
 
 
-def multiply_vecs(vec1, vec2):
+def multiply_vecs(vec1: Vector, vec2: Vector) -> Vector:
     vec3 = Vector((0.0, 0.0, 0.0))
     vec3[0] = vec1[0] * vec2[0]
     vec3[1] = vec1[1] * vec2[1]
@@ -353,7 +363,7 @@ def multiply_vecs(vec1, vec2):
 
 
 # get verts by custom bmesh layer(integer)
-def get_verts_from_ids(ids, id_layer, bm):
+def get_verts_from_ids(ids: List[int], id_layer: Any, bm: bmesh.types.BMesh) -> Optional[List[bmesh.types.BMVert]]:
     verts_dict = {}
     verts_sorted = []
 

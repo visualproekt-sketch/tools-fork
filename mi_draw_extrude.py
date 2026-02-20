@@ -22,7 +22,17 @@ import bmesh
 # import bgl
 import string
 
-from bpy.props import *
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
 from bpy.types import Operator, AddonPreferences
 
 from bpy_extras import view3d_utils

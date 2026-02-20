@@ -15,13 +15,14 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # END GPL LICENSE BLOCK #####
+from __future__ import annotations
 
 
 bl_info = {
     "name": "Mira Tools",
     "author": "Pavel Geraskin, Marvin K. Breuer, Graham Held, JoseConseco",
-    "version": (3, 0, 2),
-    "blender": (2, 90, 0),
+    "version": (5, 0, 0),
+    "blender": (5, 0, 0),
     "location": "3D Viewport",
     "description": "Mira Tools",
     "warning": "",
@@ -31,26 +32,26 @@ bl_info = {
 
 
 if "bpy" in locals():
-    import imp
-    imp.reload(mi_curve_stretch)
-    imp.reload(mi_curve_surfaces)
-    imp.reload(mi_settings)
-    imp.reload(mi_gui)
-    imp.reload(mi_noise)
-    imp.reload(mi_deform)
-    imp.reload(mi_linear_deformer)
-    imp.reload(mi_linear_deformer_curve)
-    imp.reload(mi_curve_guide)
-    imp.reload(mi_draw_extrude)
-    imp.reload(mi_poly_loop)
-    imp.reload(mi_make_arc)
-    imp.reload(mi_wrap_master)
-    imp.reload(mi_primitives)
-    imp.reload(mi_simple_extrude)
-    imp.reload(mi_unbevel)
-    imp.reload(mi_retopo_loops)
-    imp.reload(mi_snap_points)
-    imp.reload(mi_simple_modeling)
+    import importlib
+    importlib.reload(mi_curve_stretch)
+    importlib.reload(mi_curve_surfaces)
+    importlib.reload(mi_settings)
+    importlib.reload(mi_gui)
+    importlib.reload(mi_noise)
+    importlib.reload(mi_deform)
+    importlib.reload(mi_linear_deformer)
+    importlib.reload(mi_linear_deformer_curve)
+    importlib.reload(mi_curve_guide)
+    importlib.reload(mi_draw_extrude)
+    importlib.reload(mi_poly_loop)
+    importlib.reload(mi_make_arc)
+    importlib.reload(mi_wrap_master)
+    importlib.reload(mi_primitives)
+    importlib.reload(mi_simple_extrude)
+    importlib.reload(mi_unbevel)
+    importlib.reload(mi_retopo_loops)
+    importlib.reload(mi_snap_points)
+    importlib.reload(mi_simple_modeling)
 
 else:
     from . import mi_curve_stretch
@@ -75,14 +76,16 @@ else:
 
 
 import bpy
-from bpy.props import *
+from bpy.props import (
+    PointerProperty,
+)
 
 from . import auto_load
 auto_load.init()
 
 import traceback
 
-def register():
+def register() -> None:
     try:
         auto_load.register()
     except:
@@ -100,13 +103,13 @@ def register():
     #bpy.types.Scene.mi_unbevel_settings = PointerProperty( name="Unbevel Settings", type=mi_unbevel.MI_Unbevel_Settings, description="Unbevel Settings" )
 
     # alternative gui
-    bpy.types.WindowManager.mirawindow = bpy.props.PointerProperty(type = mi_gui.DropdownMiraToolProps)
+    bpy.types.WindowManager.mirawindow = PointerProperty(type = mi_gui.DropdownMiraToolProps)
     bpy.types.VIEW3D_MT_mesh_add.prepend(mi_gui.mifth_prim_menu)
 
 
     # bpy.types.VIEW3D_PT_tools_curveedit.append(mi_linear_deformer_curve.linear_deform_button)
 
-def unregister():
+def unregister() -> None:
 
     #del bpy.types.Scene.miraTool
     #del bpy.types.Object.mi_curves  # need to investigate if i need to delete it

@@ -17,9 +17,16 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
+from __future__ import annotations
+
 import bpy
 
-from bpy.props import *
+from bpy.props import (
+    BoolProperty,
+    EnumProperty,
+    IntProperty,
+    FloatProperty,
+)
 from bpy.types import Operator, AddonPreferences, PropertyGroup
 
 
@@ -38,7 +45,7 @@ class MI_Addon_Settings(AddonPreferences):
     line_size: IntProperty( default = 1, min = 1)
     select_point_radius: FloatProperty( default = 9.0, min = 3.0)
 
-    def draw(self, context):
+    def draw(self, context: bpy.types.Context):
         layout = self.layout
         #row = layout.row()
         #row.prop(self, "sg_icons_style")

@@ -16,26 +16,41 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
+from __future__ import annotations
 
 
 import gpu
 from gpu_extras.batch import batch_for_shader
 
-from bpy.props import *
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
 
 from bpy_extras import view3d_utils
 
+import bpy
+import bmesh
+from typing import Any, List, Tuple, Optional, Dict
 import mathutils as mathu
 from mathutils import Vector
 
 from . import mi_utils_base as ut_base
 
 
-shader3d = gpu.shader.from_builtin('UNIFORM_COLOR')
-shader2d = gpu.shader.from_builtin('UNIFORM_COLOR')
+shader3d = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+shader2d = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
 
 
 class MI_LW_Point():
+    position: Vector
 
     # class constructor
     def __init__(self, position):
@@ -43,6 +58,9 @@ class MI_LW_Point():
 
 
 class MI_Linear_Widget():
+    start_point: Optional[MI_LW_Point]
+    middle_point: Optional[MI_LW_Point]
+    end_point: Optional[MI_LW_Point]
 
     # class constructor
     def __init__(self):
@@ -51,7 +69,7 @@ class MI_Linear_Widget():
         self.end_point = None
 
 
-def update_middle_point(lw_tool):
+def update_middle_point(lw_tool: MI_Linear_Widget):
     lw_dir = (lw_tool.end_point.position - lw_tool.start_point.position)
     lw_len = (lw_dir).length
     lw_dir = lw_dir.normalized()
@@ -59,7 +77,7 @@ def update_middle_point(lw_tool):
     lw_tool.middle_point.position = lw_tool.start_point.position + (lw_dir * (lw_len / 2.0))
 
 
-def get_tool_verts(lw_tool, verts_ids, bm, obj, do_clamp, local_coords):
+def get_tool_verts(lw_tool: MI_Linear_Widget, verts_ids: List[int], bm: bmesh.types.BMesh, obj: bpy.types.Object, do_clamp: bool, local_coords: bool) -> List[Tuple[int, float, Vector]]:
     apply_tool_verts = []
     final_dir = ( lw_tool.end_point.position - lw_tool.start_point.position )
     max_dist = final_dir.length
@@ -81,7 +99,7 @@ def get_tool_verts(lw_tool, verts_ids, bm, obj, do_clamp, local_coords):
     return apply_tool_verts
 
 
-def draw_lw(context, lw, cross_up_dir, draw_faloff):
+def draw_lw(context: bpy.types.Context, lw: MI_Linear_Widget, cross_up_dir: Vector, draw_faloff: bool):
     region = context.region
     rv3d = context.region_data
     addon_prefs = context.preferences.addons[__package__].preferences
@@ -119,7 +137,7 @@ def draw_lw(context, lw, cross_up_dir, draw_faloff):
         batch.draw(shader2d)
 
 
-def pick_lw_point(context, m_coords, lw):
+def pick_lw_point(context: bpy.types.Context, m_coords: Tuple[int, int], lw: MI_Linear_Widget) -> Optional[MI_LW_Point]:
     region = context.region
     rv3d = context.region_data
     addon_prefs = context.preferences.addons[__package__].preferences
@@ -144,7 +162,7 @@ def pick_lw_point(context, m_coords, lw):
     return return_point
 
 
-def setup_lw_tool(rv3d, lw_tool, active_obj, verts, center_type, scale_size):
+def setup_lw_tool(rv3d: bpy.types.RegionView3D, lw_tool: MI_Linear_Widget, active_obj: bpy.types.Object, verts: List[bmesh.types.BMVert], center_type: str, scale_size: float):
     # Types
     # 'Auto', 'X', 'X_Left', 'X_Right', 'Z', 'Z_Top', 'Z_Bottom'
 

@@ -17,15 +17,26 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
+from __future__ import annotations
+
 import bpy
-# import bgl
 import blf
 import string
 import bmesh
 
-from bpy.props import *
-from bpy.types import Operator, AddonPreferences
-
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
+from bpy.types import Operator, AddonPreferences, Context
+from typing import Any, List, Tuple, Optional, Dict
 from bpy_extras import view3d_utils
 
 import math
@@ -50,25 +61,25 @@ class MI_OT_Noise(bpy.types.Operator):
         default = 'Turbulence'
     )
 
-    frequency: FloatProperty(default=1.0, soft_min=0)
-    intensity: FloatProperty(default=1.0, soft_min=0)
+    frequency: FloatProperty(default=1.0, soft_min=0.0)
+    intensity: FloatProperty(default=1.0, soft_min=0.0)
     offset_x: FloatProperty(default=0.0)
     offset_y: FloatProperty(default=0.0)
     offset_z: FloatProperty(default=0.0)
     octaves: IntProperty(default=2)
-    amplitude_scale: FloatProperty(default=0.5, soft_min=0)
-    frequency_scale: FloatProperty(default=2.0, soft_min=0)
+    amplitude_scale: FloatProperty(default=0.5, soft_min=0.0)
+    frequency_scale: FloatProperty(default=2.0, soft_min=0.0)
     hard: BoolProperty(default=True)
 
 
-    def execute(self, context):
+    def execute(self, context: Context):
 
         obj = context.active_object
         noise_obj(obj, context, self)
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context: Context, event: bpy.types.Event):
         # if context.area.type == 'VIEW_3D':
             # change startup
             # self.select_mouse_mode = context.preferences.inputs.select_mouse
@@ -80,7 +91,7 @@ class MI_OT_Noise(bpy.types.Operator):
             # return {'CANCELLED'}
 
 
-def noise_obj(obj, context, self):
+def noise_obj(obj: bpy.types.Object, context: Context, self: MI_OT_Noise):
     bm = bmesh.from_edit_mesh(obj.data)
     verts = [v for v in bm.verts if v.select]
     if not verts:

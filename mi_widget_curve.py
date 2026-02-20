@@ -16,21 +16,32 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
-
-
+from __future__ import annotations
 import gpu
 from gpu_extras.batch import batch_for_shader
+from typing import Tuple, List, Optional
+import mathutils
 
-from bpy.props import *
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
 
 from . import mi_utils_base as ut_base
 
 
-shader3d = gpu.shader.from_builtin('UNIFORM_COLOR')
-shader2d = gpu.shader.from_builtin('UNIFORM_COLOR')
+shader3d = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+shader2d = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
 
 
-def draw_2d_point(point_x, point_y, p_size=4, p_col=(1.0,1.0,1.0,1.0)):
+def draw_2d_point(point_x: float, point_y: float, p_size: int = 4, p_col: Tuple[float, float, float, float] = (1.0, 1.0, 1.0, 1.0)):
     gpu.state.point_size_set(p_size)
 
     coords = ((point_x, point_y), (point_x, point_y))
@@ -40,12 +51,11 @@ def draw_2d_point(point_x, point_y, p_size=4, p_col=(1.0,1.0,1.0,1.0)):
     batch.draw(shader2d)
 
 
-def draw_3d_polyline(points, p_size, l_size, p_col, x_ray):
+def draw_3d_polyline(points: List[mathutils.Vector], p_size: int, l_size: int, p_col: Tuple[float, float, float, float], x_ray: bool):
 
     gpu.state.line_width_set(l_size)
 
     # if x_ray is True:
-    #     # bgl.glDisable(bgl.GL_DEPTH_TEST)
     #     gpu.state.depth_test_set("NONE")
 
     coords = [(point[0], point[1], point[2]) for point in points]

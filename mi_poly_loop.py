@@ -17,14 +17,25 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
+from __future__ import annotations
+
 import bpy
-# import bgl
 import string
 import bmesh
 
-from bpy.props import *
-from bpy.types import Operator, AddonPreferences
-
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
+from bpy.types import Operator, AddonPreferences, Context, Event
+from typing import Any, List, Tuple, Optional, Dict
 from bpy_extras import view3d_utils
 
 import math
@@ -40,15 +51,31 @@ from . import mi_widget_curve as c_widget
 
 
 class MI_PL_LoopObject():
+    loop_ids: List[int]
+    selected_verts: bool
+    revert_prev_loops: bool
 
     # class constructor
-    def __init__(self, selected_verts):
+    def __init__(self, selected_verts: bool):
 
         self.loop_ids = []
         self.selected_verts = selected_verts  # Boolean, if the loop is from selected or not
         self.revert_prev_loops = False  # revert previous loops for face creation in some cases
 
 class MI_OT_PolyLoop(bpy.types.Operator):
+    # changed parameters
+    manipulator: bool
+    deform_mouse_pos: Optional[Tuple[int, int]]
+    picked_meshes: Optional[List[Tuple[bpy.types.Object, mathu.Matrix]]]
+
+    # loops code
+    id_layer: Any
+    id_value: int
+    all_loops_ids: List[MI_PL_LoopObject]
+    previous_loop_id: int
+
+    id_to_index: Optional[Tuple[int, Vector]]
+
     """Draw a line with the mouse"""
     bl_idname = "mira.poly_loop"
     bl_label = "PolyLoop"
@@ -59,21 +86,7 @@ class MI_OT_PolyLoop(bpy.types.Operator):
     tool_modes = ('IDLE', 'MOVE_POINT')
     tool_mode = 'IDLE'
 
-    #all_curves = None
-    #active_curve = None
-    deform_mouse_pos = None
-
-    picked_meshes = None
-
-    # loops code
-    id_layer = None
-    id_value = None  # int
-    all_loops_ids = None
-    previous_loop_id = None  # int
-
-    id_to_index = None  # get either first or last vert
-
-    def invoke(self, context, event):
+    def invoke(self, context: Context, event: Event):
         if context.area.type == 'VIEW_3D':
             # the arguments we pass the the callbackection
             args = (self, context)
@@ -130,7 +143,7 @@ class MI_OT_PolyLoop(bpy.types.Operator):
             return {'CANCELLED'}
 
 
-    def modal(self, context, event):
+    def modal(self, context: Context, event: Event):
         #print(context.active_operator)
         context.area.tag_redraw()
 
@@ -420,11 +433,9 @@ class MI_OT_PolyLoop(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-def reset_params(self, bm):
+def reset_params(self: MI_OT_PolyLoop, bm: bmesh.types.BMesh):
     # reset base mi_settings
     self.tool_mode = 'IDLE'
-    #self.all_curves = []
-    #self.active_curve = None
     self.deform_mouse_pos = None
     self.picked_meshes = None
 
@@ -446,15 +457,14 @@ def reset_params(self, bm):
         vert[self.id_layer] = 0
 
 
-def finish_work(self, context, bm):
+def finish_work(self: MI_OT_PolyLoop, context: Context, bm: bmesh.types.BMesh):
     context.space_data.show_gizmo = self.manipulator
     bm.verts.layers.int.remove(self.id_layer)
     context.area.header_text_set(None)
 
 
-def mi_pl_draw_2d(self, context):
+def mi_pl_draw_2d(self: MI_OT_PolyLoop, context: Context):
     active_obj = context.active_object
     addon_prefs = context.preferences.addons[__package__].preferences
     if self.id_to_index:
         c_widget.draw_2d_point(self.id_to_index[1][0], self.id_to_index[1][1], p_size=addon_prefs.point_size, p_col=col_man.pl_point_col)
-
