@@ -1,3 +1,6 @@
+from __future__ import annotations
+from typing import Any, List, Tuple, Optional, Dict, Union, Callable
+
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 #
@@ -17,7 +20,6 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-from __future__ import annotations
 
 import bpy
 import blf
@@ -36,7 +38,6 @@ from bpy.props import (
     StringProperty,
 )
 from bpy.types import Operator, AddonPreferences, Context, Event
-from typing import Any, List, Tuple, Optional, Dict
 
 from bpy_extras import view3d_utils
 

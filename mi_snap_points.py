@@ -1,3 +1,6 @@
+from __future__ import annotations
+from typing import Any, List, Tuple, Optional, Dict, Union, Callable
+
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 #
@@ -17,7 +20,6 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-from __future__ import annotations
 
 import bpy
 import bmesh
@@ -37,7 +39,6 @@ from bpy.props import (
     StringProperty,
 )
 from bpy.types import Operator, AddonPreferences, Context
-from typing import Any, List, Tuple, Optional, Dict
 from . import mi_utils_base as ut_base
 from . import mi_looptools as loop_t
 from mathutils import Vector, Matrix

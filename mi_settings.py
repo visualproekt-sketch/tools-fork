@@ -1,3 +1,6 @@
+from __future__ import annotations
+from typing import Any, List, Tuple, Optional, Dict, Union, Callable
+
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 #
@@ -17,7 +20,6 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-from __future__ import annotations
 
 import bpy
 

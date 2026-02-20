@@ -1,4 +1,6 @@
 from __future__ import annotations
+from typing import Any, List, Tuple, Optional, Dict, Union, Callable
+
 
 import bpy
 from bpy.types import Operator
@@ -10,7 +12,6 @@ from math import cos
 from math import degrees
 from math import radians
 from math import sin
-from typing import Any, List, Tuple, Optional, Dict
 
 # "The author is David Ludwig. The code was taken from here https://www.youtube.com/watch?v=O-Yhxhjx_VY "
 

@@ -1,3 +1,7 @@
+from __future__ import annotations
+from typing import Any, List, Tuple, Optional, Dict, Union, Callable
+
+
 # BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
@@ -16,7 +20,6 @@
 #
 # END GPL LICENSE BLOCK #####
 
-from __future__ import annotations
 
 import bpy
 

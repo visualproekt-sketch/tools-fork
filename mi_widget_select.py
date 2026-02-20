@@ -1,3 +1,6 @@
+from __future__ import annotations
+from typing import Any, List, Tuple, Optional, Dict, Union, Callable
+
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 #
@@ -16,7 +19,6 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
-from __future__ import annotations
 
 
 from bpy.props import (
@@ -32,7 +34,6 @@ from bpy.props import (
 )
 import bpy
 from bpy.types import Operator, AddonPreferences, Region
-from typing import Tuple, List, Optional
 import gpu
 from gpu_extras import presets
 from gpu_extras.batch import batch_for_shader

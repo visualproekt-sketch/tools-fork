@@ -1,10 +1,11 @@
 from __future__ import annotations
+from typing import Any, List, Tuple, Optional, Dict, Union, Callable
+
 
 import bpy
 import bmesh
 import blf
 import string
-from typing import Any, List, Tuple, Optional, Dict
 
 from bpy.props import (
     StringProperty,
