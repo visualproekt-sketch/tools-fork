@@ -45,7 +45,7 @@ bl_info = {
     "category": "Tools"}
 
 
-if "bpy" in locals():
+if "mi_settings" in locals():
     import importlib
     importlib.reload(mi_curve_stretch)
     importlib.reload(mi_curve_surfaces)
