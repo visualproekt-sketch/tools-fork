@@ -39,7 +39,7 @@ from gpu_extras.batch import batch_for_shader
 
 
 shader3d = gpu.shader.from_builtin('UNIFORM_COLOR')
-shader2d = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+shader2d = gpu.shader.from_builtin('UNIFORM_COLOR')
 
 
 def draw_circle_select(m_coords: Tuple[int, int], radius: int = 16, p_col: Tuple[float, float, float, float] = (0.7, 0.8, 1.0, 0.6), enabled: bool = False, sub: bool = False):
