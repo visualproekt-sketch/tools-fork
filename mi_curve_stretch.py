@@ -17,14 +17,26 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
+from __future__ import annotations
+
 import bpy
-import bgl
 import blf
 import string
 import bmesh
 
-from bpy.props import *
-from bpy.types import Operator, AddonPreferences
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
+from bpy.types import Operator, AddonPreferences, Context, Event
+from typing import Any, List, Tuple, Optional, Dict
 
 from bpy_extras import view3d_utils
 
@@ -55,31 +67,34 @@ class MI_OT_CurveStretch(bpy.types.Operator):
 
     # curve tool mode
     curve_tool_modes = ('SET_POINTS', 'IDLE', 'MOVE_POINT', 'SELECT_POINT', 'SELECT_MULTI')
-    curve_tool_mode = 'SET_POINTS'
+    curve_tool_mode: str = 'SET_POINTS'
 
-    # Selection Tools Vaariables
-    select_radius = 16
-    select_coords = None
-    curve_tool_mult_modes = ('CIRCLE', 'BOX')
-    curve_tool_mult_mode = 'CIRCLE'
-    select_box_anchor = None
-    mouse_down = False
-    mmouse_down = False
+    # typed attributes
+    select_radius: float
+    select_coords: Optional[Tuple[int, int]]
+    curve_tool_mult_mode: str
+    select_box_anchor: Optional[Tuple[int, int]]
+    mouse_down: bool
+    mmouse_down: bool
 
-    all_curves = None
-    active_curve = None
-    deform_mouse_pos = None
-    picked_meshes = None
+    all_curves: Optional[List[cur_main.MI_CurveObject]]
+    active_curve: Optional[cur_main.MI_CurveObject]
+    deform_mouse_pos: Optional[Tuple[int, int]]
+    picked_meshes: Optional[List[Tuple[bpy.types.Object, mathu.Matrix]]]
 
     # loops code
-    loops = None
-    original_verts_data = None
+    loops: Optional[List[Any]]
+    original_verts_data: List[Any]
 
-    manipulator = None
+    manipulator: Optional[bool]
 
+    mi_deform_handle_3d: Any
+    mi_deform_handle_2d: Any
+    gh_circle_select_handle: Any
+    mi_text_2d: Any
 
     # initialize one time.
-    def start_tool(self, context):
+    def start_tool(self, context: Context):
         # the arguments we pass the the callbackection
         args = (self, context)
         # Add the region OpenGL drawing callback
@@ -130,7 +145,7 @@ class MI_OT_CurveStretch(bpy.types.Operator):
         bmesh.update_edit_mesh(active_obj.data)
 
 
-    def invoke(self, context, event):
+    def invoke(self, context: Context, event: Event):
         reset_params(self)
 
         if context.area.type == 'VIEW_3D':
@@ -163,7 +178,7 @@ class MI_OT_CurveStretch(bpy.types.Operator):
             return {'CANCELLED'}
 
 
-    def modal(self, context, event):
+    def modal(self, context: Context, event: Event):
         context.area.tag_redraw()
 
         context.area.header_text_set("NewPoint: Ctrl+Click, SelectAdditive: Shift+Click, DeletePoint: Del, SurfaceSnap: Shift+Tab, SelectLinked: L/Shift+L, SpreadMode: M, CircleSelect: C, BoxSelect: B")
@@ -518,7 +533,7 @@ class MI_OT_CurveStretch(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-def reset_params(self):
+def reset_params(self: MI_OT_CurveStretch):
     # reset base curve_settings
     self.curve_tool_mode = 'SET_POINTS'
     self.all_curves = []
@@ -527,17 +542,24 @@ def reset_params(self):
 
     self.picked_meshes = None
 
+    self.select_radius = 50.0
+    self.select_coords = (0, 0)
+    self.curve_tool_mult_mode = 'CIRCLE'
+    self.select_box_anchor = (0, 0)
+    self.mouse_down = False
+    self.mmouse_down = False
+
     # loops code
     self.loops = None
     self.original_verts_data = []
 
 
-def finish_work(self, context):
+def finish_work(self: MI_OT_CurveStretch, context: Context):
     context.space_data.show_gizmo = self.manipulator
     context.area.header_text_set(None)
 
 
-def update_curve_line(active_obj, curve_to_update, loops, all_curves, bm, spread_mode, original_verts_data):
+def update_curve_line(active_obj: bpy.types.Object, curve_to_update: cur_main.MI_CurveObject, loops: List[Any], all_curves: List[cur_main.MI_CurveObject], bm: bmesh.types.BMesh, spread_mode: str, original_verts_data: List[Any]):
     line = cur_main.get_bezier_line(curve_to_update, active_obj, True)
     loop_verts = [bm.verts[i] for i in loops[all_curves.index(curve_to_update)][0]]
 
@@ -547,7 +569,7 @@ def update_curve_line(active_obj, curve_to_update, loops, all_curves, bm, spread
         cur_main.verts_to_line(loop_verts, line, None, curve_to_update.closed)
 
 
-def gh_circle_draw_2d(self, context):
+def gh_circle_draw_2d(self: MI_OT_CurveStretch, context: Context):
     if self.all_curves:
         if self.curve_tool_mult_mode == 'CIRCLE':
             s_widget.draw_circle_select(self.select_coords, radius = self.select_radius, enabled = (self.curve_tool_mode == 'SELECT_MULTI'), sub = self.mmouse_down)
@@ -556,13 +578,13 @@ def gh_circle_draw_2d(self, context):
                                enabled=(self.curve_tool_mode == 'SELECT_MULTI'), dragging=(self.mouse_down or self.mmouse_down), sub = self.mmouse_down)
 
 
-def mi_curve_draw_2d(self, context):
+def mi_curve_draw_2d(self: MI_OT_CurveStretch, context: Context):
     active_obj = context.active_object
     if self.all_curves:
         draw_curve_2d(self.all_curves, self.active_curve, context)
 
 
-def mi_curve_draw_3d(self, context):
+def mi_curve_draw_3d(self: MI_OT_CurveStretch, context: Context):
     active_obj = context.active_object
     addon_prefs = context.preferences.addons[__package__].preferences
     if self.all_curves:
@@ -575,7 +597,7 @@ def mi_curve_draw_3d(self, context):
                     c_widget.draw_3d_polyline(curve.display_bezier[cur_point.point_id], addon_prefs.point_size, addon_prefs.line_size, col_man.cur_line_base, True)
 
 
-def draw_curve_2d(curves, active_cur, context):
+def draw_curve_2d(curves: List[cur_main.MI_CurveObject], active_cur: cur_main.MI_CurveObject, context: Context):
     region = context.region
     rv3d = context.region_data
     curve_settings = context.scene.mi_settings
@@ -614,7 +636,7 @@ def draw_curve_2d(curves, active_cur, context):
                             c_widget.draw_2d_point(handle_2_pos_2d.x, handle_2_pos_2d.y, int(addon_prefs.point_size / 2), col_man.cur_handle_2_base)
 
 
-def draw_text_2d(self, context):
+def draw_text_2d(self: MI_OT_CurveStretch, context: Context):
 
     cur_stretch_settings = context.scene.mi_cur_stretch_settings
     rh = context.region.height
@@ -624,10 +646,7 @@ def draw_text_2d(self, context):
     font_size = 30
 
     # #Set font color
-    # bgl.glEnable(bgl.GL_BLEND)
-    # #bgl.glColor(1, 0.75, 0.1, 1)
     # blf.color(0, 1, 0.75, 0.1, 1)
-    # bgl.glLineWidth(2)
 
     #Draw text
     blf.position(font_id, rw - 400, 210 - font_size, 0)
@@ -636,8 +655,4 @@ def draw_text_2d(self, context):
     blf.draw(font_id, str(cur_stretch_settings.points_number))
 
     # # restore opengl defaults
-    # bgl.glLineWidth(1)
     # blf.color(0, 0.0, 0.0, 0.0, 1.0)
-    # bgl.glDisable(bgl.GL_BLEND)
-    # #bgl.glColor(0, 0.0, 0.0, 0.0, 1.0)
-

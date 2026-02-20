@@ -17,13 +17,24 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
+from __future__ import annotations
+
 import bpy
 import bmesh
-# import bgl
 
-from bpy.props import *
-from bpy.types import Operator, AddonPreferences
-
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
+from bpy.types import Operator, AddonPreferences, Context, Event
+from typing import Any, List, Tuple, Optional, Dict
 import math
 import mathutils as mathu
 from mathutils import Vector, Matrix
@@ -35,6 +46,22 @@ from bpy_extras import view3d_utils
 
 
 class MI_Simple_Extrude(bpy.types.Operator):
+    # changed parameters
+    first_mouse_x: Optional[int]
+    center: Optional[Vector]
+    depth: float
+    thickness: float
+    move_size: Optional[float]
+    extrude_dirs: Optional[List[Tuple[Vector, Vector, Vector]]]
+    extrude_verts_ids: Optional[List[int]]
+
+    zero_x_verts: Optional[List[int]]
+    zero_y_verts: Optional[List[int]]
+    zero_z_verts: Optional[List[int]]
+
+    tool_mode: str
+    old_auto_merge: Optional[bool]
+
     """Extrude like in Modo"""
     bl_idname = "mira.simple_extrude"
     bl_label = "Simple Extrude"
@@ -42,24 +69,7 @@ class MI_Simple_Extrude(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
 
-    first_mouse_x = None
-    center = None
-    depth = 0
-    thickness = 0
-    move_size = None
-    extrude_dirs = None
-    extrude_verts_ids = None
-
-    zero_x_verts = None
-    zero_y_verts = None
-    zero_z_verts = None
-
-    tool_mode = 'IDLE'  # IDLE, EXTRUDE, INSET
-
-    old_auto_merge = None  # fix for crash
-
-
-    def invoke(self, context, event):
+    def invoke(self, context: Context, event: Event):
         clean(self)
 
         if context.mode == 'EDIT_MESH':
@@ -185,7 +195,7 @@ class MI_Simple_Extrude(bpy.types.Operator):
             return {'CANCELLED'}
 
 
-    def modal(self, context, event):
+    def modal(self, context: Context, event: Event):
         # Tooltip
         context.area.tag_redraw()
         tooltip_text = "E: Extrude, W: Inset, R: Reset, Leftclick/Esc: Finish"
@@ -320,7 +330,7 @@ class MI_Simple_Extrude(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-def clean(self):
+def clean(self: MI_Simple_Extrude):
     self.tool_mode = 'IDLE'
     self.first_mouse_x = None
     self.center = None
@@ -338,7 +348,7 @@ def clean(self):
 
 
 # calculate Move Size
-def calc_move_size(self, context):
+def calc_move_size(self: MI_Simple_Extrude, context: Context) -> float:
     rv3d = context.region_data
     reg_w = bpy.context.region.width
     reg_h = bpy.context.region.height
@@ -351,7 +361,7 @@ def calc_move_size(self, context):
 
 
 # Draw point in Viewport
-def mi_extrude_draw_2d(self, context):
+def mi_extrude_draw_2d(self: MI_Simple_Extrude, context: Context):
     if self.center:
         rv3d = context.region_data
         region = context.region

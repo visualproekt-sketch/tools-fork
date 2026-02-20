@@ -17,10 +17,24 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
+from __future__ import annotations
+
 # import bpy
 
-from bpy.props import *
-# from bpy.types import Operator, AddonPreferences
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
+import bpy
+from typing import Any, List, Tuple, Optional, Dict
+from bpy.types import Operator, AddonPreferences
 
 from bpy_extras import view3d_utils
 
@@ -48,9 +62,14 @@ from . import mi_utils_base as ut_base
 
 
 class MI_CurveObject(object):
+    curve_points: List[MI_CurvePoint]
+    active_point: Optional[str]
+    display_bezier: Dict[str, List[Vector]]
+    curve_id: Optional[str]
+    closed: bool
 
     # class constructor
-    def __init__(self, other_curves):
+    def __init__(self, other_curves: Optional[List[MI_CurveObject]]):
         self.curve_points = []
         self.active_point = None  # string
         self.display_bezier = {}  # display bezier curves dictionary
@@ -66,12 +85,19 @@ class MI_CurveObject(object):
 
 
 class MI_CurvePoint():
+    position: Vector
+    direction: Vector
+    up_direction: Vector
+    handle1: Optional[Vector]
+    handle2: Optional[Vector]
+    point_id: Optional[str]
+    select: bool
 
     # class constructor
-    def __init__(self, other_points):
-        self.position = FloatVectorProperty()
-        self.direction = FloatVectorProperty()
-        self.up_direction = FloatVectorProperty()
+    def __init__(self, other_points: Optional[List[MI_CurvePoint]]):
+        self.position = Vector((0.0, 0.0, 0.0))
+        self.direction = Vector((0.0, 0.0, 0.0))
+        self.up_direction = Vector((0.0, 0.0, 0.0))
         self.handle1 = None  # Vector
         self.handle2 = None  # Vector
 
@@ -85,7 +111,7 @@ class MI_CurvePoint():
         self.select = False
 
 
-def curve_point_changed(curve, point_numb, curve_resolution, display_bezier):
+def curve_point_changed(curve: MI_CurveObject, point_numb: int, curve_resolution: int, display_bezier: Dict[str, List[Vector]]):
     # here we update 6 bezier areas
     len_cur = len(curve.curve_points)
     for i in range(6):
@@ -103,7 +129,7 @@ def curve_point_changed(curve, point_numb, curve_resolution, display_bezier):
             display_bezier[curve.curve_points[new_i].point_id] = new_b_points
 
 
-def generate_bezier_points(curve, display_bezier, curve_resolution):
+def generate_bezier_points(curve: MI_CurveObject, display_bezier: Dict[str, List[Vector]], curve_resolution: int):
     p_len = len(curve.curve_points)
 
     if p_len == 2:
@@ -118,14 +144,14 @@ def generate_bezier_points(curve, display_bezier, curve_resolution):
                 display_bezier[curve.curve_points[i].point_id] = b_points
 
 
-def generate_line_area(curve, point_numb):
+def generate_line_area(curve: MI_CurveObject, point_numb: int) -> Optional[List[Vector]]:
     if point_numb == 0 and curve.closed is False:
         return None  # return None for closed curve at 0 index
     else:
         return [curve.curve_points[point_numb-1].position, curve.curve_points[point_numb].position]
 
 
-def generate_bezier_area(curve, point_numb, curve_resolution):
+def generate_bezier_area(curve: MI_CurveObject, point_numb: int, curve_resolution: int) -> Optional[List[Vector]]:
     p_len = len(curve.curve_points)
     bezier_vecs = None
 
@@ -211,14 +237,14 @@ def generate_bezier_area(curve, point_numb, curve_resolution):
     return bezier_vecs
 
 
-def get_point_by_id(points, p_id):
+def get_point_by_id(points: List[MI_CurvePoint], p_id: str) -> Optional[MI_CurvePoint]:
     for point in points:
         if point.point_id == p_id:
             return point
     return None
 
 
-def get_points_ids(points):
+def get_points_ids(points: List[MI_CurvePoint]) -> List[str]:
     other_ids = []
     for point in points:
         other_ids.append(point.point_id)
@@ -226,7 +252,7 @@ def get_points_ids(points):
     return other_ids
 
 
-def get_curves_ids(curves):
+def get_curves_ids(curves: List[MI_CurveObject]) -> List[str]:
     other_ids = []
     for curve in curves:
         other_ids.append(curve.curve_id)
@@ -234,7 +260,7 @@ def get_curves_ids(curves):
     return other_ids
 
 
-def pick_curve_point(curve, context, mouse_coords):
+def pick_curve_point(curve: MI_CurveObject, context: bpy.types.Context, mouse_coords: Tuple[int, int]) -> Tuple[Optional[MI_CurvePoint], float]:
     region = context.region
     rv3d = context.region_data
     addon_prefs = context.preferences.addons[__package__].preferences
@@ -256,7 +282,7 @@ def pick_curve_point(curve, context, mouse_coords):
 
     return picked_point, the_length
 
-def pick_all_curves_point(all_curves, context, mouse_coords):
+def pick_all_curves_point(all_curves: List[MI_CurveObject], context: bpy.types.Context, mouse_coords: Tuple[int, int]) -> Tuple[Optional[MI_CurvePoint], Optional[float], Optional[MI_CurveObject]]:
     best_point = None
     best_length = None
     choosen_curve = None
@@ -276,7 +302,7 @@ def pick_all_curves_point(all_curves, context, mouse_coords):
 
     return best_point, best_length, choosen_curve
 
-def pick_curve_point_radius(curve, context, mouse_coords, radius):
+def pick_curve_point_radius(curve: MI_CurveObject, context: bpy.types.Context, mouse_coords: Tuple[int, int], radius: float) -> Tuple[Optional[MI_CurvePoint], float]:
     region = context.region
     rv3d = context.region_data
 
@@ -297,7 +323,7 @@ def pick_curve_point_radius(curve, context, mouse_coords, radius):
 
     return picked_point, the_length
 
-def pick_all_curves_points_radius(all_curves, context, mouse_coords, radius):
+def pick_all_curves_points_radius(all_curves: List[MI_CurveObject], context: bpy.types.Context, mouse_coords: Tuple[int, int], radius: float) -> Tuple[List[MI_CurvePoint], List[float], List[MI_CurveObject]]:
     best_points = []
     best_lengths = []
     choosen_curves = []
@@ -312,7 +338,7 @@ def pick_all_curves_points_radius(all_curves, context, mouse_coords, radius):
 
     return best_points, best_lengths, choosen_curves
 
-def pick_curve_points_box(curve, context, mouse_coords, anchor):
+def pick_curve_points_box(curve: MI_CurveObject, context: bpy.types.Context, mouse_coords: Tuple[int, int], anchor: Tuple[int, int]) -> List[MI_CurvePoint]:
     region = context.region
     rv3d = context.region_data
 
@@ -334,7 +360,7 @@ def pick_curve_points_box(curve, context, mouse_coords, anchor):
 
     return picked_points
 
-def pick_all_curves_points_box(all_curves, context, mouse_coords, anchor):
+def pick_all_curves_points_box(all_curves: List[MI_CurveObject], context: bpy.types.Context, mouse_coords: Tuple[int, int], anchor: Tuple[int, int]) -> Tuple[List[MI_CurvePoint], List[MI_CurveObject]]:
     best_points = []
     best_lengths = []
     choosen_curves = []
@@ -349,7 +375,7 @@ def pick_all_curves_points_box(all_curves, context, mouse_coords, anchor):
 
     return best_points, choosen_curves
 
-def select_point(curve, picked_point, additive_selection):
+def select_point(curve: MI_CurveObject, picked_point: MI_CurvePoint, additive_selection: bool):
     if additive_selection is False:
         if picked_point.select is False:
             select_all_points(curve.curve_points, False)
@@ -366,7 +392,7 @@ def select_point(curve, picked_point, additive_selection):
         else:
             picked_point.select = True
 
-def select_point_multi(all_curves, points, add = True):
+def select_point_multi(all_curves: List[MI_CurveObject], points: List[MI_CurvePoint], add: bool = True):
     if len(points)>0:
         for point in points:
             point.select = add
@@ -384,7 +410,7 @@ def select_point_multi(all_curves, points, add = True):
                     curve.active_point = None
 
 
-def add_point(new_point_pos, curve):
+def add_point(new_point_pos: Vector, curve: MI_CurveObject) -> MI_CurvePoint:
     active_point = get_point_by_id(curve.curve_points, curve.active_point)
     point_index = curve.curve_points.index(active_point)
 
@@ -419,19 +445,19 @@ def add_point(new_point_pos, curve):
     return new_point
 
 
-def delete_point(point_to_delete, curve, display_bezier, curve_resolution):
+def delete_point(point_to_delete: MI_CurvePoint, curve: MI_CurveObject, display_bezier: Dict[str, List[Vector]], curve_resolution: int):
     if point_to_delete.point_id in display_bezier:
         del display_bezier[point_to_delete.point_id]  # remove from dictionary
 
     curve.curve_points.remove(point_to_delete)  # remove from curve
 
 
-def select_all_points(points, select_mode):
+def select_all_points(points: List[MI_CurvePoint], select_mode: bool):
     for point in points:
         point.select = select_mode
 
 
-def get_selected_points(points):
+def get_selected_points(points: List[MI_CurvePoint]) -> List[MI_CurvePoint]:
     sel_points = []
     for point in points:
         if point.select:
@@ -440,7 +466,7 @@ def get_selected_points(points):
     return sel_points
 
 
-def deselect_all_curves(all_curves, reset_acive_point):
+def deselect_all_curves(all_curves: List[MI_CurveObject], reset_acive_point: bool):
     for curve in all_curves:
         select_all_points(curve.curve_points, False)  # deselect points
         if reset_acive_point is True:
@@ -448,7 +474,7 @@ def deselect_all_curves(all_curves, reset_acive_point):
 
 
 # CODE FOR LOOPS
-def pass_line(vecs, is_closed_line):
+def pass_line(vecs: List[Vector], is_closed_line: bool) -> List[Tuple[Vector, float, float, Optional[Vector]]]:
     line_length = 0.0
     line_data = []
     vecs_len = len(vecs)
@@ -489,7 +515,7 @@ def pass_line(vecs, is_closed_line):
 
 
 # CODE FOR LOOPS
-def get_bezier_line(curve, active_obj, local_coords):
+def get_bezier_line(curve: MI_CurveObject, active_obj: bpy.types.Object, local_coords: bool) -> List[Tuple[Vector, float, float, Optional[Vector]]]:
     curve_vecs = []
     for point in curve.curve_points:
         # 0 point has b_points in only closed curve
@@ -529,7 +555,7 @@ def get_bezier_line(curve, active_obj, local_coords):
 
 
 # CODE FOR LOOPS
-def create_curve_to_line(points_number, line_data, all_curves, is_closed_line):
+def create_curve_to_line(points_number: int, line_data: List[Tuple[Vector, float, float, Optional[Vector]]], all_curves: List[MI_CurveObject], is_closed_line: bool) -> MI_CurveObject:
     curve = MI_CurveObject(all_curves)
     line_len = line_data[-1][1]
 
@@ -565,7 +591,7 @@ def create_curve_to_line(points_number, line_data, all_curves, is_closed_line):
 
 
 # CODE FOR LOOPS
-def verts_to_line(verts, line_data, verts_data, is_closed_line):
+def verts_to_line(verts: List[bmesh.types.BMVert], line_data: List[Tuple[Vector, float, float, Optional[Vector]]], verts_data: Optional[List[Tuple[Vector, float, float, Optional[Vector]]]], is_closed_line: bool):
     line_len = line_data[-1][1]
 
     verts_number = len(verts)
@@ -598,7 +624,7 @@ def verts_to_line(verts, line_data, verts_data, is_closed_line):
 
 
 # SURFACE SNAP FOR CURVE POINTS
-def snap_to_surface(context, selected_points, picked_meshes, region, rv3d, move_offset):
+def snap_to_surface(context: bpy.types.Context, selected_points: List[MI_CurvePoint], picked_meshes: List[Tuple[bpy.types.Object, mathu.Matrix]], region: bpy.types.Region, rv3d: bpy.types.RegionView3D, move_offset: Optional[Vector]):
     best_obj, hit_normal, hit_position = None, None, None
 
     for point in selected_points:

@@ -17,12 +17,25 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
+from __future__ import annotations
+
 import bpy
 import bmesh
+import array
 
-from bpy.props import *
-from bpy.types import Operator, AddonPreferences
-
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
+from bpy.types import Operator, AddonPreferences, Context
+from typing import Any, List, Tuple, Optional, Dict
 import math
 import mathutils as mathu
 import random
@@ -37,7 +50,7 @@ class MI_OT_Wrap_Object(bpy.types.Operator):
     bl_description = "Wrap Object"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def execute(self, context):
+    def execute(self, context: Context):
         wrap_obj = context.active_object
 
         if not wrap_obj or not wrap_obj.select_get() or not wrap_obj.data.uv_layers or not wrap_obj.data.polygons:
@@ -62,23 +75,29 @@ class MI_OT_Wrap_Object(bpy.types.Operator):
             bpy.ops.object.modifier_apply(modifier="EdgeSplit")
 
             # get verts and faces
-            out_verts=[]
-            out_faces=[]
-            for face in new_obj.data.polygons:
+            mesh = new_obj.data
+            n_loops = len(mesh.loops)
+            n_verts = len(mesh.vertices)
 
-                for vert, loop in zip(face.vertices, face.loop_indices):
-                    coord = new_obj.data.vertices[vert].normal
-                    normal = new_obj.data.vertices[vert].co
-                    uv = new_obj.data.uv_layers.active.data[loop].uv
-                    new_obj.data.vertices[vert].co = (uv.x, 0, uv.y)
-                    #out_verts.append((uv.x, 0, uv.y))
-                    #oface.append(loop)
+            uv_data = array.array('f', [0.0] * (n_loops * 2))
+            mesh.uv_layers.active.data.foreach_get("uv", uv_data)
 
-                #out_faces.append(oface)
+            loop_vert_indices = array.array('i', [0] * n_loops)
+            mesh.loops.foreach_get("vertex_index", loop_vert_indices)
 
+            vert_coords = array.array('f', [0.0] * (n_verts * 3))
+            mesh.vertices.foreach_get("co", vert_coords)
 
-            #new_obj.data.from_pydata(out_verts, [], out_faces)
-            new_obj.data.update()
+            for i in range(n_loops):
+                v_idx = loop_vert_indices[i]
+                u = uv_data[i*2]
+                v = uv_data[i*2 + 1]
+                vert_coords[v_idx*3] = u
+                vert_coords[v_idx*3 + 1] = 0.0
+                vert_coords[v_idx*3 + 2] = v
+
+            mesh.vertices.foreach_set("co", vert_coords)
+            mesh.update()
 
             #for face in new_obj.data.polygons:
                 #wrap_obj.data.polygons[]
@@ -93,7 +112,7 @@ class MI_OT_Wrap_Scale(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
 
-    def execute(self, context):
+    def execute(self, context: Context):
         selected_objects = context.selected_objects
         uv_obj = context.active_object
         wrap_name = uv_obj.name.replace('_WRAP', '')
@@ -154,7 +173,7 @@ class MI_OT_Wrap_Master(bpy.types.Operator):
     transform_objects: BoolProperty(name="TransformObjects", description="Transform instead of meshes", default=True)
 
 
-    def execute(self, context):
+    def execute(self, context: Context):
         selected_objects = context.selected_objects
         uv_obj = context.active_object
         wrap_name = uv_obj.name.replace('_WRAP', '')

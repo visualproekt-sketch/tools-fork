@@ -17,15 +17,26 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
+from __future__ import annotations
+
 import bpy
 import bmesh
 import math
 import mathutils as mathu
 
-from bpy.props import *
-from bpy.types import Operator, AddonPreferences
-
-
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
+from bpy.types import Operator, AddonPreferences, Context, Event
+from typing import Any, List, Tuple, Optional, Dict
 from . import mi_utils_base as ut_base
 from . import mi_looptools as loop_t
 from mathutils import Vector, Matrix
@@ -33,7 +44,7 @@ from mathutils import Vector, Matrix
 
 # Settings
 class MI_MakeArc_Settings(bpy.types.PropertyGroup):
-    arc_axis: bpy.props.FloatVectorProperty(name="Arc Axis", description="Arc Axis", default=(0.0, 0.0, 1.0), size=3)
+    arc_axis: FloatVectorProperty(name="Arc Axis", description="Arc Axis", default=(0.0, 0.0, 1.0), size=3)
 
 
 class MI_OT_Make_Arc_Axis(bpy.types.Operator):
@@ -44,7 +55,7 @@ class MI_OT_Make_Arc_Axis(bpy.types.Operator):
     bl_description = "Arc Axis From Selected Face"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def execute(self, context):
+    def execute(self, context: Context):
         active_obj = context.active_object
         bm = bmesh.from_edit_mesh(active_obj.data)
         bm.verts.ensure_lookup_table()
@@ -87,10 +98,10 @@ class MI_OT_Make_Arc(bpy.types.Operator):
 
     upvec_offset: FloatProperty(name="Offset", description="Offset Arc", default=0.0)
     scale_arc: FloatProperty(name="Scale", description="Scale Arc", default=0.0)
-    rotate_arc_axis: bpy.props.FloatProperty(name="Rotate", description="Rotate Arc Axis", default=0)
-    rotate_axis: bpy.props.FloatVectorProperty(name="Rotate Axis", description="Rotate Axis", default=(0.0, 0.0, 1.0), size=3)
+    rotate_arc_axis: FloatProperty(name="Rotate", description="Rotate Arc Axis", default=0.0)
+    rotate_axis: FloatVectorProperty(name="Rotate Axis", description="Rotate Axis", default=(0.0, 0.0, 1.0), size=3)
 
-    def reset_all_values(self):
+    def reset_all_values(self: MI_OT_Make_Arc):
         self.reverse_direction = False
         self.spread_mode = 'Normal'
         self.direction_vector = 'Custom'
@@ -99,12 +110,12 @@ class MI_OT_Make_Arc(bpy.types.Operator):
         self.rotate_arc_axis = 0.0
         self.reset_values = False
 
-    def invoke(self, context, event):
+    def invoke(self, context: Context, event: Event):
 
         self.rotate_axis = context.scene.mi_makearc_settings.arc_axis
         return self.execute(context)
 
-    def execute(self, context):
+    def execute(self, context: Context):
 
         if self.reset_values is True:
             self.reset_all_values()

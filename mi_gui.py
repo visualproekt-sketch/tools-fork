@@ -16,8 +16,9 @@
 #
 # END GPL LICENSE BLOCK #####
 
+from __future__ import annotations
+
 import bpy
-from bpy import*
 
 
 # DROPDOWN PROPERTIES #
@@ -26,17 +27,16 @@ class DropdownMiraToolProps(bpy.types.PropertyGroup):
     Fake module like class
     bpy.context.window_manager.mirawindow
     """
-    display_mira_arc: bpy.props.BoolProperty(name="Make Arc", description="UI Make Arc Tools", default=False)
-    display_mira_stretch: bpy.props.BoolProperty(name="Curve Stretch", description="UI Curve Stretch Tools", default=False)
-    display_mira_sface: bpy.props.BoolProperty(name="Curve Surface", description="UI Curve Surface Tools", default=False)
-    display_mira_guide: bpy.props.BoolProperty(name="Curve Guide", description="UI Curve Guide Tools", default=False)
-    display_mira_modify: bpy.props.BoolProperty(name="Modify Tools", description="UI Modify Tools", default=False)
-    display_mira_deform: bpy.props.BoolProperty(name="Deform Tools", description="UI Deform Tools", default=False)
-    display_mira_modify: bpy.props.BoolProperty(name="Modify", description="UI Modify", default=False)
-    display_mira_settings: bpy.props.BoolProperty(name="Settings", description="UI Settings", default=False)
+    display_mira_arc: BoolProperty(name="Make Arc", description="UI Make Arc Tools", default=False)
+    display_mira_stretch: BoolProperty(name="Curve Stretch", description="UI Curve Stretch Tools", default=False)
+    display_mira_sface: BoolProperty(name="Curve Surface", description="UI Curve Surface Tools", default=False)
+    display_mira_guide: BoolProperty(name="Curve Guide", description="UI Curve Guide Tools", default=False)
+    display_mira_modify: BoolProperty(name="Modify Tools", description="UI Modify Tools", default=False)
+    display_mira_deform: BoolProperty(name="Deform Tools", description="UI Deform Tools", default=False)
+    display_mira_settings: BoolProperty(name="Settings", description="UI Settings", default=False)
 
-    display_mira_wrap: bpy.props.BoolProperty(name="Wrap", description="UI Wrap", default=False)
-    display_mira_obj_retopology: bpy.props.BoolProperty(name="Object Retopology", description="UI Object Retopology", default=False)
+    display_mira_wrap: BoolProperty(name="Wrap", description="UI Wrap", default=False)
+    display_mira_obj_retopology: BoolProperty(name="Object Retopology", description="UI Object Retopology", default=False)
 
 
 
@@ -49,7 +49,7 @@ class MI_PT_Panel(bpy.types.Panel):
     bl_context = "mesh_edit"
     bl_category = 'Mira'
 
-    def draw(self, context):
+    def draw(self, context: bpy.types.Context):
         mt = context.window_manager.mirawindow
         layout = self.layout
         #layout = self.layout.column(align=True)
@@ -76,7 +76,7 @@ class MI_PT_Panel(bpy.types.Panel):
                 sub.scale_x = 0.35
                 sub.prop(context.scene.mi_extrude_settings, "symmetry_axys", text='')
 
-        row.operator("mira.draw_extrude", text="", icon="VPAINT_HLT")
+        row.operator("mira.draw_extrude", text="", icon="VERTEX_PAINT")
         row.operator("mira.unbevel", text="", icon="DRIVER_ROTATIONAL_DIFFERENCE")
 
         if mt.display_mira_modify:     
@@ -86,14 +86,14 @@ class MI_PT_Panel(bpy.types.Panel):
             box.separator()        
                      
             row = box.column()
-            row.operator("mira.simple_extrude", text="Simple Extrude", icon="VPAINT_HLT")
+            row.operator("mira.simple_extrude", text="Simple Extrude", icon="VERTEX_PAINT")
          
             box.separator()   
             box = col.box().column(align=True)
             box.separator()   
             
             row = box.column()
-            row.operator("mira.draw_extrude", text="Draw Extrude", icon="VPAINT_HLT")
+            row.operator("mira.draw_extrude", text="Draw Extrude", icon="VERTEX_PAINT")
             row.prop(context.scene.mi_extrude_settings, "extrude_step_type", text='Step')
 
             if context.scene.mi_extrude_settings.extrude_step_type == 'Asolute':
@@ -220,7 +220,7 @@ class MI_PT_Panel(bpy.types.Panel):
 
         row.label(text="Arc")
         row.operator("mira.make_arc", text="", icon ="SPHERECURVE")
-        row.operator("mira.make_arc_get_axis", text="", icon ="FACESEL")
+        row.operator("mira.make_arc_get_axis", text="", icon ="SELECT_FACE")
 
         if mt.display_mira_arc:
 
@@ -235,7 +235,7 @@ class MI_PT_Panel(bpy.types.Panel):
 
             row = box.column(align=True)
             row.operator("mira.make_arc", text="Make Arc", icon ="SPHERECURVE")
-            row.operator("mira.make_arc_get_axis", text="Get Axis", icon ="FACESEL")
+            row.operator("mira.make_arc_get_axis", text="Get Axis", icon ="SELECT_FACE")
 
             box.separator()
 
@@ -386,7 +386,7 @@ class MI_PT_Object_Panel(bpy.types.Panel):
     bl_context = "objectmode"
     bl_category = 'Mira'
 
-    def draw(self, context):
+    def draw(self, context: bpy.types.Context):
 
         mt = context.window_manager.mirawindow
         layout = self.layout
@@ -441,7 +441,7 @@ class MI_PT_Object_Panel(bpy.types.Panel):
             row.prop(mt, "display_mira_obj_retopology", text="", icon='TRIA_RIGHT')
 
         row.label(text="Retopo")
-        row.operator("mira.retopo_loops", text="", icon ="XRAY")
+        row.operator("mira.retopo_loops", text="", icon ="VIEW3D")
   
         if mt.display_mira_obj_retopology:          
 
@@ -450,18 +450,18 @@ class MI_PT_Object_Panel(bpy.types.Panel):
             box.separator()               
             
             row = box.column()
-            row.operator("mira.retopo_loops", text="Retopo Loops", icon ="XRAY")
+            row.operator("mira.retopo_loops", text="Retopo Loops", icon ="VIEW3D")
 
             box.separator()  
            
 
 
 # PRIMITIVES MENU
-def mifth_prim_menu(self, context):
+def mifth_prim_menu(self: bpy.types.Menu, context: bpy.types.Context):
     #self.layout.operator_context = 'INVOKE_REGION_WIN'
 
     self.layout.menu("PRISM_MT_Menu",
-                     text="MiraPrimitives", icon="PLUGIN")
+                     text="MiraPrimitives", icon="ADDON")
 
     self.layout.separator()
 
@@ -471,7 +471,7 @@ class PRISM_MT_Menu(bpy.types.Menu):
     bl_idname = "PRISM_MT_Menu"
     bl_label = "Primitives Menu"
 
-    def draw(self, context):
+    def draw(self, context: bpy.types.Context):
         op = self.layout.operator("mi_prims.mifth_make_prim", text="MiraPlane", icon='MESH_PLANE')
         op.prim_type = 'Plane'
         op = self.layout.operator("mi_prims.mifth_make_prim", text="MiraCube", icon='MESH_CUBE')
@@ -482,7 +482,7 @@ class PRISM_MT_Menu(bpy.types.Menu):
         op.prim_type = 'Sphere'
         op = self.layout.operator("mi_prims.mifth_make_prim", text="MiraCylinder", icon='MESH_CYLINDER')
         op.prim_type = 'Cylinder'
-        op = self.layout.operator("mi_prims.mifth_make_prim", text="MiraCapsule", icon='MESH_CAPSULE')
+        op = self.layout.operator("mi_prims.mifth_make_prim", text="MiraCapsule", icon='MESH_CYLINDER')
         op.prim_type = 'Capsule'
         op = self.layout.operator("mi_prims.mifth_make_prim", text="MiraCone", icon='MESH_CONE')
         op.prim_type = 'Cone'

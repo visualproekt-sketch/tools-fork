@@ -17,12 +17,25 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
+from __future__ import annotations
+
 import bpy
 import bmesh
+import array
 
-from bpy.props import *
-# from bpy.types import Operator, AddonPreferences
-
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
+from bpy.types import Operator, AddonPreferences, Context
+from typing import Any, List, Tuple, Optional, Dict
 # from bpy_extras import view3d_utils
 
 import math
@@ -64,7 +77,7 @@ class MI_OT_Deform(bpy.types.Operator):
         # default = 'Top'
     #)
 
-    def execute(self, context):
+    def execute(self, context: Context):
 
         active_obj = context.active_object
 
@@ -76,7 +89,7 @@ class MI_OT_Deform(bpy.types.Operator):
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context: Context, event: bpy.types.Event):
         # if context.area.type == 'VIEW_3D':
             # change startup
             # self.select_mouse_mode = context.preferences.inputs.select_mouse
@@ -88,7 +101,7 @@ class MI_OT_Deform(bpy.types.Operator):
             # return {'CANCELLED'}
 
 
-def reset_all_values(self):
+def reset_all_values(self: MI_OT_Deform):
     self.taper_value = 0.0
     self.twist_angle = 0.0
     self.bend_angle = 0.0
@@ -99,32 +112,22 @@ def reset_all_values(self):
     self.reset_values = False
 
 
-def deform_obj(active_obj, context, self):
+def deform_obj(active_obj: bpy.types.Object, context: Context, self: MI_OT_Deform):
     offset_rotation = 0.2
     offset_axis = 5.0
     bend_scale = 0.7
 
     # get vertices
-    verts = None
     if active_obj.mode == 'EDIT':
-        # this works only in edit mode,
         bm = bmesh.from_edit_mesh(active_obj.data)
-
+        bm.verts.ensure_lookup_table()
         verts = [v for v in bm.verts if v.select]
         if len(verts) == 0:
             verts = [v for v in bm.verts if v.hide is False]
 
-    else:
-        # this works only in object mode,
-        verts = [v for v in active_obj.data.vertices if v.select]
-        if len(verts) == 0:
-            verts = [v for v in active_obj.data.vertices if v.hide is False]
+        if not verts:
+            return
 
-    # TODO Move it into utilities method. As Extrude class has the same
-    # min/max.
-    if verts:
-        if active_obj.mode == 'EDIT':
-            bm.verts.ensure_lookup_table()
         x_min = verts[0].co.x
         x_max = verts[0].co.x
         y_min = verts[0].co.y
@@ -133,18 +136,12 @@ def deform_obj(active_obj, context, self):
         z_max = verts[0].co.z
 
         for vert in verts:
-            if vert.co.x > x_max:
-                x_max = vert.co.x
-            if vert.co.x < x_min:
-                x_min = vert.co.x
-            if vert.co.y > y_max:
-                y_max = vert.co.y
-            if vert.co.y < y_min:
-                y_min = vert.co.y
-            if vert.co.z > z_max:
-                z_max = vert.co.z
-            if vert.co.z < z_min:
-                z_min = vert.co.z
+            if vert.co.x > x_max: x_max = vert.co.x
+            if vert.co.x < x_min: x_min = vert.co.x
+            if vert.co.y > y_max: y_max = vert.co.y
+            if vert.co.y < y_min: y_min = vert.co.y
+            if vert.co.z > z_max: z_max = vert.co.z
+            if vert.co.z < z_min: z_min = vert.co.z
 
         x_orig = ((x_max - x_min) / 2.0) + x_min
         y_orig = ((y_max - y_min) / 2.0) + y_min
@@ -162,47 +159,30 @@ def deform_obj(active_obj, context, self):
         if visual_max != 0.0:
             for vert in verts:
                 vec = vert.co.copy()
-                visual_up_pos = None
-                if self.deform_axis != 'Z':
-                    visual_up_pos = vec.z - z_min
-                else:
-                    visual_up_pos = vec.y - y_min
+                visual_up_pos = (vec.z - z_min) if self.deform_axis != 'Z' else (vec.y - y_min)
 
-                # TAPER CODE
-                # scale the vert
+                # TAPER
                 if self.taper_value != 0:
-                    taper_value = (
-                        (self.taper_value) * (visual_up_pos / visual_max))
+                    taper_value = (self.taper_value) * (visual_up_pos / visual_max)
                     if self.deform_axis != 'Z':
                         vert.co.xy -= (vert.co.xy - rot_origin.xy) * taper_value
                     else:
                         vert.co.xz -= (vert.co.xz - rot_origin.xz) * taper_value
 
-                # TWIST CODE
-                # rotate the vert
+                # TWIST
                 if self.twist_angle != 0:
                     twist_angle = self.twist_angle * (visual_up_pos / visual_max)
-                    # if self.deform_axis == 'X':
-                        # rot_angle = -rot_angle
-                    rot_mat = None
-                    if self.deform_axis != 'Z':
-                        rot_mat = Matrix.Rotation(twist_angle, 3, 'Z')
-                    else:
-                        rot_mat = Matrix.Rotation(twist_angle, 3, 'Y')
+                    rot_mat = Matrix.Rotation(twist_angle, 3, 'Z' if self.deform_axis != 'Z' else 'Y')
                     vert.co = rot_mat @ (vert.co - rot_origin) + rot_origin
 
-                # BEND CODE
+                # BEND
                 beta = math.radians(self.bend_angle * (visual_up_pos / visual_max))
                 if beta != 0:
-                    final_offset = visual_up_pos * self.offset_rotation
-                    if beta < 0:
-                        final_offset = -final_offset
-
-                    move_to_rotate = (
-                        (visual_up_pos / beta) + final_offset) * self.bend_scale
+                    final_offset = visual_up_pos * self.offset_rotation * (1.0 if beta >= 0 else -1.0)
+                    move_to_rotate = ((visual_up_pos / beta) + final_offset) * self.bend_scale
                     if self.deform_axis == 'X':
                         vert.co.y -= move_to_rotate
-                    elif self.deform_axis == 'Y' or self.deform_axis == 'Z':
+                    elif self.deform_axis in {'Y', 'Z'}:
                         vert.co.x -= move_to_rotate
 
                     if self.deform_axis != 'Z':
@@ -210,32 +190,119 @@ def deform_obj(active_obj, context, self):
                     else:
                         vert.co.y = rot_origin.y
 
-                    # rotate the vert
-                    rot_angle = beta
-                    if self.deform_axis == 'X' or self.deform_axis == 'Z':
-                        rot_angle = -rot_angle
+                    rot_angle = -beta if self.deform_axis in {'X', 'Z'} else beta
                     rot_mat = Matrix.Rotation(rot_angle, 3, self.deform_axis)
                     vert.co = rot_mat @ (vert.co - rot_origin) + rot_origin
 
-                    # back the rotation offset
                     back_offset = (visual_up_pos / (beta)) * self.bend_scale
                     if self.deform_axis == 'X':
                         vert.co.y += back_offset
-                    elif self.deform_axis == 'Y' or self.deform_axis == 'Z':
+                    elif self.deform_axis in {'Y', 'Z'}:
                         vert.co.x += back_offset
 
-                    # offset axys
                     move_offset = self.offset_axis * (visual_up_pos / visual_max)
-                    if self.deform_axis == 'X':
-                        vert.co.x += move_offset
-                    elif self.deform_axis == 'Y':
-                        vert.co.y += move_offset
-                    elif self.deform_axis == 'Z':
-                        vert.co.z += move_offset
+                    if self.deform_axis == 'X': vert.co.x += move_offset
+                    elif self.deform_axis == 'Y': vert.co.y += move_offset
+                    elif self.deform_axis == 'Z': vert.co.z += move_offset
 
-    # active_obj.data.update()
+        bm.normal_update()
+        bmesh.update_edit_mesh(active_obj.data)
+
+    else:
+        # Object Mode - Use foreach_get/set
+        mesh = active_obj.data
+        count = len(mesh.vertices)
+        coords = array.array('f', [0.0] * (count * 3))
+        mesh.vertices.foreach_get("co", coords)
+
+        select = array.array('i', [0] * count)
+        mesh.vertices.foreach_get("select", select)
+        hide = array.array('i', [0] * count)
+        mesh.vertices.foreach_get("hide", hide)
+
+        work_indices = [i for i in range(count) if select[i]]
+        if not work_indices:
+            work_indices = [i for i in range(count) if not hide[i]]
+
+        if not work_indices:
+            return
+
+        x_min = x_max = coords[work_indices[0]*3]
+        y_min = y_max = coords[work_indices[0]*3+1]
+        z_min = z_max = coords[work_indices[0]*3+2]
+
+        for i in work_indices:
+            x, y, z = coords[i*3], coords[i*3+1], coords[i*3+2]
+            if x > x_max: x_max = x
+            if x < x_min: x_min = x
+            if y > y_max: y_max = y
+            if y < y_min: y_min = y
+            if z > z_max: z_max = z
+            if z < z_min: z_min = z
+
+        x_orig = ((x_max - x_min) / 2.0) + x_min
+        y_orig = ((y_max - y_min) / 2.0) + y_min
+        z_orig = z_min if self.deform_axis != 'Z' else ((z_max - z_min) / 2.0) + z_min
+        if self.deform_axis == 'Z':
+             y_orig = y_min
+
+        rot_origin = Vector((x_orig, y_orig, z_orig))
+        visual_max = (z_max - z_min) if self.deform_axis != 'Z' else (y_max - y_min)
+
+        if visual_max != 0.0:
+            for i in work_indices:
+                co = Vector((coords[i*3], coords[i*3+1], coords[i*3+2]))
+                visual_up_pos = (co.z - z_min) if self.deform_axis != 'Z' else (co.y - y_min)
+
+                # TAPER
+                if self.taper_value != 0:
+                    taper_val = (self.taper_value) * (visual_up_pos / visual_max)
+                    if self.deform_axis != 'Z':
+                        co.x -= (co.x - rot_origin.x) * taper_val
+                        co.y -= (co.y - rot_origin.y) * taper_val
+                    else:
+                        co.x -= (co.x - rot_origin.x) * taper_val
+                        co.z -= (co.z - rot_origin.z) * taper_val
+
+                # TWIST
+                if self.twist_angle != 0:
+                    twist_angle = self.twist_angle * (visual_up_pos / visual_max)
+                    rot_mat = Matrix.Rotation(twist_angle, 3, 'Z' if self.deform_axis != 'Z' else 'Y')
+                    co = rot_mat @ (co - rot_origin) + rot_origin
+
+                # BEND
+                beta = math.radians(self.bend_angle * (visual_up_pos / visual_max))
+                if beta != 0:
+                    final_offset = visual_up_pos * self.offset_rotation * (1.0 if beta >= 0 else -1.0)
+                    move_to_rotate = ((visual_up_pos / beta) + final_offset) * self.bend_scale
+                    if self.deform_axis == 'X': co.y -= move_to_rotate
+                    elif self.deform_axis in {'Y', 'Z'}: co.x -= move_to_rotate
+
+                    if self.deform_axis != 'Z': co.z = rot_origin.z
+                    else: co.y = rot_origin.y
+
+                    rot_angle = -beta if self.deform_axis in {'X', 'Z'} else beta
+                    rot_mat = Matrix.Rotation(rot_angle, 3, self.deform_axis)
+                    co = rot_mat @ (co - rot_origin) + rot_origin
+
+                    back_offset = (visual_up_pos / (beta)) * self.bend_scale
+                    if self.deform_axis == 'X': co.y += back_offset
+                    elif self.deform_axis in {'Y', 'Z'}: co.x += back_offset
+
+                    move_offset = self.offset_axis * (visual_up_pos / visual_max)
+                    if self.deform_axis == 'X': co.x += move_offset
+                    elif self.deform_axis == 'Y': co.y += move_offset
+                    elif self.deform_axis == 'Z': co.z += move_offset
+
+                coords[i*3], coords[i*3+1], coords[i*3+2] = co.x, co.y, co.z
+
+        mesh.vertices.foreach_set("co", coords)
+        mesh.update()
     #bpy.ops.mesh.normals_make_consistent()  # recalculate normals
     #bpy.ops.object.editmode_toggle()
     #bpy.ops.object.editmode_toggle()
-    bm.normal_update()
-    bmesh.update_edit_mesh(active_obj.data)
+    if active_obj.mode == 'EDIT':
+        bm.normal_update()
+        bmesh.update_edit_mesh(active_obj.data)
+    else:
+        active_obj.data.update()

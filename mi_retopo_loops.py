@@ -17,12 +17,24 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
+from __future__ import annotations
+
 import bpy
 import bmesh
 
-from bpy.props import *
-from bpy.types import Operator, AddonPreferences
-
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
+from bpy.types import Operator, AddonPreferences, Context
+from typing import Any, List, Tuple, Optional, Dict
 import math
 import mathutils as mathu
 import random
@@ -30,7 +42,7 @@ from mathutils import Vector, Matrix
 
 from . import mi_utils_base as ut_base
 
-class MI_OT_Wrap_Object(bpy.types.Operator):
+class MI_OT_RetopoLoops(bpy.types.Operator):
     bl_idname = "mira.retopo_loops"
     bl_label = "Retopo Loops"
     bl_description = "Retopo Loops"
@@ -44,12 +56,12 @@ class MI_OT_Wrap_Object(bpy.types.Operator):
     )
 
     #reset_values: BoolProperty(default=False)
-    cuts_number: bpy.props.IntProperty(name="Cuts Number", description="Cuts Number for Generic Mode", default=10, min=2)
-    verts_number: bpy.props.IntProperty(name="Verts Number", description="Verts Number for Cuts", default=8, min=3)
-    rotate_loops: bpy.props.IntProperty(name="Rotate Loops", description="Cuts Number for Generic Mode", default=0, min=-360, max=360)
+    cuts_number: IntProperty(name="Cuts Number", description="Cuts Number for Generic Mode", default=10, min=2)
+    verts_number: IntProperty(name="Verts Number", description="Verts Number for Cuts", default=8, min=3)
+    rotate_loops: IntProperty(name="Rotate Loops", description="Cuts Number for Generic Mode", default=0, min=-360, max=360)
 
 
-    def execute(self, context):
+    def execute(self, context: Context):
         # check issues
         if not context.selected_objects:
             self.report({'WARNING'}, "Please, Select Circle Objects for Loops and Add Some Hipoly Objects!")

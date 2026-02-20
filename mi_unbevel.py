@@ -17,15 +17,27 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
+from __future__ import annotations
+
 import bpy
 import bmesh
 import math
 from math import *
 import mathutils as mathu
 
-from bpy.props import *
-from bpy.types import Operator, AddonPreferences
-
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
+from bpy.types import Operator, AddonPreferences, Context
+from typing import Any, List, Tuple, Optional, Dict
 from . import mi_utils_base as ut_base
 from . import mi_looptools as loop_t
 from mathutils import Vector, Matrix
@@ -40,9 +52,9 @@ class MI_OT_Unbevel(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     #reset_values: BoolProperty(default=False)
-    unbevel_value: bpy.props.FloatProperty(name="Unbevel Value", description="Unbevel Value", default=1.0, min=0.0)
+    unbevel_value: FloatProperty(name="Unbevel Value", description="Unbevel Value", default=1.0, min=0.0)
 
-    def execute(self, context):
+    def execute(self, context: Context):
 
         #if self.reset_values is True:
             #self.reset_all_values()

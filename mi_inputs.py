@@ -18,7 +18,10 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-# import bpy
+from __future__ import annotations
+
+import bpy
+from typing import Set
 
 
 pass_keys = {'NUMPAD_0', 'NUMPAD_1', 'NUMPAD_3', 'NUMPAD_4',
@@ -27,7 +30,7 @@ pass_keys = {'NUMPAD_0', 'NUMPAD_1', 'NUMPAD_3', 'NUMPAD_4',
              'MOUSEMOVE', 'INBETWEEN_MOUSEMOVE', 'TRACKPADPAN', 'TRACKPADZOOM'}
 
 
-def get_input_pass(pass_keys, key_inputs, event):
+def get_input_pass(pass_keys: Set[str], key_inputs: str, event: bpy.types.Event) -> bool:
     if event.type in pass_keys:
         return True
 
