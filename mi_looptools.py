@@ -1,3 +1,18 @@
+from __future__ import annotations
+from typing import Any, List, Tuple, Optional, Dict, Union, Callable
+import bpy
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
+
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
@@ -16,10 +31,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-from __future__ import annotations
 
 import bmesh
-import bpy
 # import collections
 # import mathutils
 # import math
@@ -64,7 +77,6 @@ def check_loops(loops: List[Tuple[List[int], bool]], bm_mod: bmesh.types.BMesh) 
     return(valid_loops)
 
 
-from typing import List, Tuple, Dict, Any
 
 # input: bmesh, output: dict with the edge-key as key and face-index as value
 def dict_edge_faces(bm: bmesh.types.BMesh) -> Dict[Tuple[int, int], List[int]]:

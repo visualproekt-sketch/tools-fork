@@ -1,16 +1,25 @@
 from __future__ import annotations
-
+from typing import Any, List, Tuple, Optional, Dict, Union, Callable
 import bpy
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
+
 from bpy.types import Operator
-from bpy.props import FloatProperty
-from bpy.props import IntProperty
 from bpy_extras.object_utils import object_data_add
 from mathutils import Vector
 from math import cos
 from math import degrees
 from math import radians
 from math import sin
-from typing import Any, List, Tuple, Optional, Dict
 
 # "The author is David Ludwig. The code was taken from here https://www.youtube.com/watch?v=O-Yhxhjx_VY "
 

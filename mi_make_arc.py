@@ -1,3 +1,18 @@
+from __future__ import annotations
+from typing import Any, List, Tuple, Optional, Dict, Union, Callable
+import bpy
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
+
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 #
@@ -17,26 +32,12 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-from __future__ import annotations
 
-import bpy
 import bmesh
 import math
 import mathutils as mathu
 
-from bpy.props import (
-    BoolProperty,
-    CollectionProperty,
-    EnumProperty,
-    FloatProperty,
-    FloatVectorProperty,
-    IntProperty,
-    IntVectorProperty,
-    PointerProperty,
-    StringProperty,
-)
 from bpy.types import Operator, AddonPreferences, Context, Event
-from typing import Any, List, Tuple, Optional, Dict
 from . import mi_utils_base as ut_base
 from . import mi_looptools as loop_t
 from mathutils import Vector, Matrix

@@ -1,3 +1,18 @@
+from __future__ import annotations
+from typing import Any, List, Tuple, Optional, Dict, Union, Callable
+import bpy
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
+
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 #
@@ -17,16 +32,8 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-from __future__ import annotations
 
-import bpy
 
-from bpy.props import (
-    BoolProperty,
-    EnumProperty,
-    IntProperty,
-    FloatProperty,
-)
 from bpy.types import Operator, AddonPreferences, PropertyGroup
 
 

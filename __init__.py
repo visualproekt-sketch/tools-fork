@@ -1,3 +1,18 @@
+from __future__ import annotations
+from typing import Any, List, Tuple, Optional, Dict, Union, Callable
+import bpy
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
+
 # BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
@@ -15,7 +30,6 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # END GPL LICENSE BLOCK #####
-from __future__ import annotations
 
 
 bl_info = {
@@ -75,10 +89,6 @@ else:
     from . import mi_simple_modeling
 
 
-import bpy
-from bpy.props import (
-    PointerProperty,
-)
 
 from . import auto_load
 auto_load.init()
