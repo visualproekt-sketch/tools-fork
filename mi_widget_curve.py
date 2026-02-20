@@ -37,7 +37,7 @@ from bpy.props import (
 from . import mi_utils_base as ut_base
 
 
-shader3d = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+shader3d = gpu.shader.from_builtin('UNIFORM_COLOR')
 shader2d = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
 
 

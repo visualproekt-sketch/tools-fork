@@ -38,7 +38,7 @@ from gpu_extras import presets
 from gpu_extras.batch import batch_for_shader
 
 
-shader3d = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+shader3d = gpu.shader.from_builtin('UNIFORM_COLOR')
 shader2d = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
 
 
