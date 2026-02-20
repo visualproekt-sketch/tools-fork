@@ -1,6 +1,17 @@
 from __future__ import annotations
 from typing import Any, List, Tuple, Optional, Dict, Union, Callable
-
+import bpy
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
 
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -22,7 +33,6 @@ from typing import Any, List, Tuple, Optional, Dict, Union, Callable
 # ***** END GPL LICENCE BLOCK *****
 
 
-import bpy
 
 
 pass_keys = {'NUMPAD_0', 'NUMPAD_1', 'NUMPAD_3', 'NUMPAD_4',

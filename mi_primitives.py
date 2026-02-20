@@ -1,5 +1,17 @@
 from __future__ import annotations
 from typing import Any, List, Tuple, Optional, Dict, Union, Callable
+import bpy
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
 
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -21,7 +33,6 @@ from typing import Any, List, Tuple, Optional, Dict, Union, Callable
 # ***** END GPL LICENCE BLOCK *****
 
 
-import bpy
 
 # import bgl
 import blf
@@ -35,7 +46,6 @@ import math
 import mathutils as mathu
 import random
 from mathutils import Vector, Matrix
-from bpy.props import EnumProperty, BoolProperty, IntProperty, CollectionProperty, BoolVectorProperty, PointerProperty
 
 from . import mi_utils_base as ut_base
 #from . import mi_color_manager as col_man

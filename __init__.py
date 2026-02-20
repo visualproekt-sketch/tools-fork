@@ -1,6 +1,17 @@
 from __future__ import annotations
 from typing import Any, List, Tuple, Optional, Dict, Union, Callable
-
+import bpy
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
 
 # BEGIN GPL LICENSE BLOCK #####
 #
@@ -78,10 +89,6 @@ else:
     from . import mi_simple_modeling
 
 
-import bpy
-from bpy.props import (
-    PointerProperty,
-)
 
 from . import auto_load
 auto_load.init()

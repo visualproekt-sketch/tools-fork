@@ -1,21 +1,22 @@
 from __future__ import annotations
 from typing import Any, List, Tuple, Optional, Dict, Union, Callable
-
-
 import bpy
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
+
 import bmesh
 import blf
 import string
 
-from bpy.props import (
-    StringProperty,
-    BoolProperty,
-    IntProperty,
-    FloatProperty,
-    EnumProperty,
-    PointerProperty,
-    CollectionProperty,
-)
 from bpy.types import Operator, AddonPreferences
 
 from bpy_extras import view3d_utils

@@ -1,5 +1,17 @@
 from __future__ import annotations
 from typing import Any, List, Tuple, Optional, Dict, Union, Callable
+import bpy
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    IntVectorProperty,
+    PointerProperty,
+    StringProperty,
+)
 
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -21,18 +33,6 @@ from typing import Any, List, Tuple, Optional, Dict, Union, Callable
 # ***** END GPL LICENCE BLOCK *****
 
 
-from bpy.props import (
-    BoolProperty,
-    CollectionProperty,
-    EnumProperty,
-    FloatProperty,
-    FloatVectorProperty,
-    IntProperty,
-    IntVectorProperty,
-    PointerProperty,
-    StringProperty,
-)
-import bpy
 from bpy.types import Operator, AddonPreferences, Region
 import gpu
 from gpu_extras import presets
